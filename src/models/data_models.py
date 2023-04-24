@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from sqlalchemy import DateTime, String, Engine, exc, ColumnElement
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import Session
+from sqlalchemy import DateTime, String, Engine, exc, ColumnElement, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
 from typing import Callable, TypeVar
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Base(DeclarativeBase):
@@ -61,12 +58,11 @@ class Base(DeclarativeBase):
 
     def __to_raw_dict(self, to_str_int: bool = False):
         res = dict()
-        for key, val in vars(self).items():
-            if isinstance(val, Callable) or key.startswith('_'):
-                continue
+        for column in self.__table__.columns.keys():
+            val = getattr(self, column)
             if not isinstance(val, str | int) and to_str_int:
                 val = str(val)
-            res[key] = val
+            res[column] = val
         return res
 
     def to_dict(self) -> dict[str, str | int]:
@@ -83,6 +79,7 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
+    _T = TypeVar('_T')
     __tablename__ = 'users'
 
     username: Mapped[str] = mapped_column(String(50))
@@ -91,6 +88,31 @@ class User(Base):
 
     def __str__(self) -> str:
         return f'{self.id}: {self.username}, {self.email}, {self.registration_date}'
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    @classmethod
+    def registered_last(cls, days: int = 7) -> int:
+        with Session(cls._engine) as session:
+            return session.query(User)\
+                .filter(datetime.now() - cls.registration_date <= timedelta(days=days))\
+                .count()
+
+    @classmethod
+    def longest_names(cls: _T, top: int = 5) -> list[_T]:
+        with Session(cls._engine) as session:
+            return session.query(User) \
+                .order_by(func.char_length(User.username).desc()) \
+                .limit(top)\
+                .all()
+
+    @classmethod
+    def count_emails_endswith(cls, endswith: str) -> int:
+        with Session(cls._engine) as session:
+            return session.query(User)\
+                .filter(cls.email.endswith(endswith))\
+                .count()
 
 
 def setup(engine: Engine):
