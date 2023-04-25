@@ -3,6 +3,8 @@ from datetime import datetime
 
 from src.models import data_models
 from src.middleware.body_type import correct_body, check_fields
+from src.utils.predict import activity_prob
+
 
 base = Blueprint(name='base', import_name=__name__)
 
@@ -52,7 +54,11 @@ def get_user() -> Response:
     if not user:
         return jsonify(error=3, error_msg='No such user!')
 
-    return jsonify(user.to_dict())
+    activity = activity_prob(data_models.Activity.get_activity_by_months(user.id))
+    ret_dict = user.to_dict()
+    ret_dict['activity_prob'] = activity
+
+    return jsonify(ret_dict)
 
 
 @base.route('/user/update', methods=['POST'])

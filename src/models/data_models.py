@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import DateTime, String, Engine, exc, ColumnElement, func, ForeignKey, ForeignKeyConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, relationship
 
-from typing import Callable, TypeVar
+from typing import TypeVar
 from datetime import datetime, timedelta
 
 
@@ -117,6 +117,18 @@ class User(Base):
             return session.query(User) \
                 .filter(cls.email.endswith(endswith)) \
                 .count()
+
+    @classmethod
+    def delete(cls, element: ColumnElement | None) -> bool:
+        with Session(cls._engine) as session:
+            try:
+                ids = session.query(cls.id).filter(element)
+                session.query(Activity).filter(Activity.id.in_(ids)).delete()
+                deleted = session.query(cls).filter(element).delete()
+                session.commit()
+            except exc.IntegrityError:
+                return False
+        return deleted > 0
 
 
 class Activity(Base):
