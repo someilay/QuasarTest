@@ -99,8 +99,9 @@ class User(Base):
     @classmethod
     def registered_last(cls, days: int = 7) -> int:
         with Session(cls._engine) as session:
+            now = datetime.now()
             return session.query(User) \
-                .filter(datetime.now() - cls.registration_date <= timedelta(days=days)) \
+                .filter(cls.registration_date.between(now - timedelta(days=days), now)) \
                 .count()
 
     @classmethod
@@ -112,11 +113,13 @@ class User(Base):
                 .all()
 
     @classmethod
-    def count_emails_endswith(cls, endswith: str) -> int:
+    def percent_emails_endswith(cls, endswith: str) -> float:
         with Session(cls._engine) as session:
-            return session.query(User) \
+            c_all = session.query(User).count()
+            c_endswith = session.query(User) \
                 .filter(cls.email.endswith(endswith)) \
                 .count()
+            return (c_endswith / c_all) if c_all else 0
 
     @classmethod
     def delete(cls, element: ColumnElement | None) -> bool:
