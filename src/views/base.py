@@ -12,6 +12,12 @@ base = Blueprint(name='base', import_name=__name__)
 @base.route('/echo', methods=['POST'])
 @correct_body
 def test() -> Response:
+    """
+    Echo view. Returns payload as answer
+
+    :return: response
+    :rtype: Response
+    """
     return jsonify(request.json)
 
 
@@ -19,6 +25,12 @@ def test() -> Response:
 @correct_body
 @check_fields(username=str, email=str, id=int | None)
 def add_user() -> Response:
+    """
+    Adds user to table. Registration date is set as now.
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     username: str = content.get('username', None)
     email: str = content.get('email', None)
@@ -36,6 +48,12 @@ def add_user() -> Response:
 @correct_body
 @check_fields(username=str | None, email=str | None, id=int | None, predict=bool | None)
 def get_user() -> Response:
+    """
+    Get user from the table by filters from requests
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     username: str | None = content.get('username', None)
     email: str | None = content.get('email', None)
@@ -67,6 +85,12 @@ def get_user() -> Response:
 @correct_body
 @check_fields(username=str | None, email=str | None, id=int)
 def update_user() -> Response:
+    """
+    Update user in the table by id within a given new fields
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     username: str | None = content.get('username', None)
     email: str | None = content.get('email', None)
@@ -90,6 +114,12 @@ def update_user() -> Response:
 @correct_body
 @check_fields(username=str | None, email=str | None, id=int | None)
 def delete_user() -> Response:
+    """
+    Delete user from the table by a given filter
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     username: str | None = content.get('username', None)
     email: str | None = content.get('email', None)
@@ -115,6 +145,12 @@ def delete_user() -> Response:
 @correct_body
 @check_fields(page=int | None, per_page=int | None)
 def all_users() -> Response:
+    """
+    Perform pagination, parameters passed in request payload
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     page = content.get('page', 0)
     per_page = content.get('per_page', 10)

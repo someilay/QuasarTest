@@ -6,6 +6,14 @@ from types import UnionType
 
 
 def correct_body(view: Callable[[], Response]) -> Callable[[], Response]:
+    """
+    Decorator that checks that request contains json as payloda
+
+    :param view: function to decorate
+    :rtype view: Callable[[], Response]
+    :return: wrapper
+    :rtype: Callable[[], Response]
+    """
     @wraps(view)
     def _correct_body() -> Response:
         if not request.is_json:
@@ -16,6 +24,14 @@ def correct_body(view: Callable[[], Response]) -> Callable[[], Response]:
 
 
 def check_fields(**kwargs: type | UnionType) -> Callable[[], Callable[[], Response]]:
+    """
+    Decorator that checks that a given json contains a needed fields with needed type
+
+    :param kwargs: filed name with a possible type
+    :type kwargs: type | UnionType
+    :return: decorator
+    :rtype: Callable[[], Callable[[], Response]]
+    """
     def _check_fields(view: Callable[[], Response]) -> Callable[[], Response]:
         @wraps(view)
         def __check_fields() -> Response:

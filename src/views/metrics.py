@@ -13,6 +13,12 @@ metrics = Blueprint(name='metrics', import_name=__name__)
 @correct_body
 @check_fields(last_n_days=int | None)
 def last_registered() -> Response:
+    """
+    Return number of users registered a given last_n_days
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     last_n_days: int | None = content.get('last_n_days', None)
 
@@ -24,6 +30,12 @@ def last_registered() -> Response:
 @correct_body
 @check_fields(top_n=int | None)
 def longest_names() -> Response:
+    """
+    List of users with the longest names, return top_n users
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     top_n: int | None = content.get('top_n', None)
 
@@ -35,6 +47,12 @@ def longest_names() -> Response:
 @correct_body
 @check_fields(domain=str)
 def email_domain() -> Response:
+    """
+    List of users with email in a given domain
+
+    :return: response
+    :rtype: Response
+    """
     content: dict = request.json
     domain: str = content.get('domain')
 
