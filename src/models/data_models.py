@@ -52,7 +52,7 @@ class Base(DeclarativeBase):
         with Session(cls._engine) as session:
             try:
                 stmt = session.query(cls).filter(element)
-                return session.scalar(stmt)
+                return stmt.scalar()
             except exc.IntegrityError:
                 pass
         return None

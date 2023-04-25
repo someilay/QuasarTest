@@ -14,7 +14,7 @@ def predict_activity(last_activities: list[int]) -> float:
     for i in range(len(last_activities)):
         a_mat[i][0] = i
     b_vec = np.linalg.pinv(a_mat).dot(np.array(last_activities))
-    return np.array([len(last_activities), 1]).dot(b_vec)
+    return np.array([-1, 1]).dot(b_vec)
 
 
 def activity_prob(last_activities: list[int]) -> float:
