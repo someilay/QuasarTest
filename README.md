@@ -19,3 +19,6 @@
 
 ## Test 
 * `python3 -m unittest test/*.py`
+
+## API Documentation
+* [index.html](index.html)
