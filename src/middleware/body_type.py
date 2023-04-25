@@ -5,7 +5,7 @@ from functools import wraps
 from types import UnionType
 
 
-def correct_body(view: Callable[[], Response]) -> Callable[[], Response]:
+def correct_body(view: Callable[[], ...]) -> Callable[[], ...]:
     """
     Decorator that checks that request contains json as payloda
 
@@ -15,15 +15,15 @@ def correct_body(view: Callable[[], Response]) -> Callable[[], Response]:
     :rtype: Callable[[], Response]
     """
     @wraps(view)
-    def _correct_body() -> Response:
+    def _correct_body() -> ...:
         if not request.is_json:
-            return jsonify(error=0, error_msg='Incorrect body type, should be a json!')
+            return jsonify(error=0, error_msg='Incorrect body type, should be a json!'), 400
         return view()
 
     return _correct_body
 
 
-def check_fields(**kwargs: type | UnionType) -> Callable[[], Callable[[], Response]]:
+def check_fields(**kwargs: type | UnionType) -> Callable[[], Callable[[], ...]]:
     """
     Decorator that checks that a given json contains a needed fields with needed type
 
@@ -32,17 +32,17 @@ def check_fields(**kwargs: type | UnionType) -> Callable[[], Callable[[], Respon
     :return: decorator
     :rtype: Callable[[], Callable[[], Response]]
     """
-    def _check_fields(view: Callable[[], Response]) -> Callable[[], Response]:
+    def _check_fields(view: Callable[[], ...]) -> Callable[[], ...]:
         @wraps(view)
-        def __check_fields() -> Response:
+        def __check_fields() -> ...:
             content: dict = request.json
             for key, t in kwargs.items():
                 val = content.get(key, None)
                 t_str = t.__name__ if isinstance(t, type) else str(t)
                 if val is None and not isinstance(val, t):
-                    return jsonify(error=1, error_msg=f'{key} should be specified!')
+                    return jsonify(error=1, error_msg=f'{key} should be specified!'), 400
                 if not isinstance(val, t):
-                    return jsonify(error=1, error_msg=f'Incorrect type for {key}, should be {t_str}')
+                    return jsonify(error=1, error_msg=f'Incorrect type for {key}, should be {t_str}'), 400
             return view()
 
         return __check_fields

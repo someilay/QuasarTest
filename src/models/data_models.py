@@ -52,7 +52,7 @@ class Base(DeclarativeBase):
         with Session(cls._engine) as session:
             try:
                 stmt = session.query(cls).filter(element)
-                return stmt.scalar()
+                return stmt.first()
             except exc.IntegrityError:
                 pass
         return None
@@ -105,6 +105,8 @@ class Base(DeclarativeBase):
             val = getattr(self, column)
             if not isinstance(val, str | int) and to_str_int:
                 val = str(val)
+                if isinstance(val, datetime):
+                    val = val.strftime('%d-%m-%Y %H:%M:%S')
             res[column] = val
         return res
 

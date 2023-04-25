@@ -69,12 +69,12 @@ def test() -> Response:
 @base.route('/user/add', methods=['PUT'])
 @correct_body
 @check_fields(username=str, email=str, registration_date=str | None, id=int | None)
-def add_user() -> Response:
+def add_user() -> Response | tuple[Response, int]:
     """
     Adds user to table. Registration date is set as now.
 
     :return: response
-    :rtype: Response
+    :rtype: Response | tuple[Response, int]
     """
     content: dict = request.json
     username: str = content.get('username', None)
@@ -85,14 +85,14 @@ def add_user() -> Response:
     # Check datetime format
     date, error = handle_datetime(registration_date)
     if error:
-        return error
+        return error, 400
     if not date:
         date = get_now()
 
     user = data_models.User(id=_id, username=username, email=email, registration_date=date).add()
 
     if not user:
-        return jsonify(error=2, error_msg='user with given id is already present in the table!')
+        return jsonify(error=2, error_msg='user with given id is already present in the table!'), 400
 
     return jsonify(user.to_dict())
 
@@ -100,12 +100,12 @@ def add_user() -> Response:
 @base.route('/user/get', methods=['GET'])
 @correct_body
 @check_fields(username=str | None, email=str | None, registration_date=str | None, id=int | None, predict=bool | None)
-def get_user() -> Response:
+def get_user() -> Response | tuple[Response, int]:
     """
     Get user from the table by filters from requests
 
     :return: response
-    :rtype: Response
+    :rtype: Response | tuple[Response, int]
     """
     content: dict = request.json
     username: str | None = content.get('username', None)
@@ -115,12 +115,12 @@ def get_user() -> Response:
     predict: bool | None = content.get('predict', None)
 
     if not (_id or email or username or registration_date):
-        return jsonify(error=1, error_msg='at least one field should be specified!')
+        return jsonify(error=1, error_msg='at least one field should be specified!'), 400
 
     # Check datetime format
     date, error = handle_datetime(registration_date)
     if error:
-        return error
+        return error, 400
 
     if _id is not None:
         user = data_models.User.get(data_models.User.id == _id)
@@ -132,7 +132,7 @@ def get_user() -> Response:
         user = data_models.User.get(data_models.User.registration_date == date)
 
     if not user:
-        return jsonify(error=3, error_msg='No such user!')
+        return jsonify(error=3, error_msg='No such user!'), 400
 
     ret_dict = user.to_dict()
     if predict is not None and predict:
@@ -145,12 +145,12 @@ def get_user() -> Response:
 @base.route('/user/update', methods=['POST'])
 @correct_body
 @check_fields(username=str | None, email=str | None, registration_date=str | None, id=int)
-def update_user() -> Response:
+def update_user() -> Response | tuple[Response, int]:
     """
     Update user in the table by id within a given new fields
 
     :return: response
-    :rtype: Response
+    :rtype: Response | tuple[Response, int]
     """
     content: dict = request.json
     username: str | None = content.get('username', None)
@@ -161,11 +161,11 @@ def update_user() -> Response:
     # Check date format
     date, error = handle_datetime(registration_date)
     if error:
-        return error
+        return error, 400
 
     user = data_models.User.get(data_models.User.id == _id)
     if not user:
-        return jsonify(error=3, error_msg='User has been deleted!')
+        return jsonify(error=3, error_msg='User has been deleted!'), 400
 
     if username:
         user.username = username
@@ -174,7 +174,7 @@ def update_user() -> Response:
     if date:
         user.registration_date = date
     if not user.update():
-        return jsonify(user.to_dict())
+        return jsonify(error=3, error_msg='Can not update'), 400
 
     return jsonify(user.to_dict())
 
@@ -182,12 +182,12 @@ def update_user() -> Response:
 @base.route('/user/delete', methods=['DELETE'])
 @correct_body
 @check_fields(username=str | None, email=str | None, registration_date=str | None, id=int | None)
-def delete_user() -> Response:
+def delete_user() -> Response | tuple[Response, int]:
     """
     Delete user from the table by a given filter
 
     :return: response
-    :rtype: Response
+    :rtype: Response | tuple[Response, int]
     """
     content: dict = request.json
     username: str | None = content.get('username', None)
@@ -196,12 +196,12 @@ def delete_user() -> Response:
     _id: int | None = content.get('id')
 
     if not (_id or email or username or registration_date):
-        return jsonify(error=1, error_msg='at least one field should be specified!')
+        return jsonify(error=1, error_msg='at least one field should be specified!'), 400
 
     # Check date format
     date, error = handle_datetime(registration_date)
     if error:
-        return error
+        return error, 400
 
     if _id is not None:
         res = data_models.User.delete(data_models.User.id == _id)
@@ -213,7 +213,7 @@ def delete_user() -> Response:
         res = data_models.User.delete(data_models.User.registration_date == date)
 
     if not res:
-        return jsonify(error=3, error_msg='User has been deleted!')
+        return jsonify(error=3, error_msg='User has been deleted!'), 400
 
     return jsonify(status='ok')
 
@@ -221,12 +221,12 @@ def delete_user() -> Response:
 @base.route('/user/all', methods=['GET'])
 @correct_body
 @check_fields(page=int | None, per_page=int | None)
-def all_users() -> Response:
+def all_users() -> Response | tuple[Response, int]:
     """
     Perform pagination, parameters passed in request payload
 
     :return: response
-    :rtype: Response
+    :rtype: Response | tuple[Response, int]
     """
     content: dict = request.json
     page = content.get('page', 0)

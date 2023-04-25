@@ -1,9 +1,7 @@
 from flask import Blueprint, jsonify, request, Response
-from datetime import datetime
 
 from src.models import data_models
 from src.middleware.body_type import correct_body, check_fields
-from src.utils.predict import activity_prob
 
 
 metrics = Blueprint(name='metrics', import_name=__name__)
@@ -48,7 +46,7 @@ def longest_names() -> Response:
 @check_fields(domain=str)
 def email_domain() -> Response:
     """
-    List of users with email in a given domain
+    Fraction of users with email in a given domain
 
     :return: response
     :rtype: Response
