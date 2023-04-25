@@ -34,12 +34,13 @@ def add_user() -> Response:
 
 @base.route('/user/get', methods=['GET'])
 @correct_body
-@check_fields(username=str | None, email=str | None, id=int | None)
+@check_fields(username=str | None, email=str | None, id=int | None, predict=bool | None)
 def get_user() -> Response:
     content: dict = request.json
     username: str | None = content.get('username', None)
     email: str | None = content.get('email', None)
     _id: int | None = content.get('id', None)
+    predict: bool | None = content.get('predict', None)
 
     if not (_id or email or username):
         return jsonify(error=1, error_msg='at least one field should be specified!')
@@ -54,9 +55,10 @@ def get_user() -> Response:
     if not user:
         return jsonify(error=3, error_msg='No such user!')
 
-    activity = activity_prob(data_models.Activity.get_activity_by_months(user.id))
     ret_dict = user.to_dict()
-    ret_dict['activity_prob'] = activity
+    if predict is not None and predict:
+        activity = activity_prob(data_models.Activity.get_activity_by_months(user.id))
+        ret_dict['activity_prob'] = activity
 
     return jsonify(ret_dict)
 
